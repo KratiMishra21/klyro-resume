@@ -1,4 +1,3 @@
-// --- Existing imports remain unchanged ---
 import express from "express";
 import multer from "multer";
 import pdfParse from "pdf-parse";
@@ -103,29 +102,29 @@ ${resumeText}`,
   }
 });
 
-//new feature that i am trying
+//new feature that i am trying (not implemented yet)
 
-app.post("/api/keyword-match", upload.single("resume"), async (req, res) => {
-  try {
-    const dataBuffer = fs.readFileSync(req.file.path);
-    const pdfData = await pdfParse(dataBuffer);
-    const resumeText = pdfData.text;  // ✅ actual text from the PDF
+// app.post("/api/keyword-match", upload.single("resume"), async (req, res) => {
+//   try {
+//     const dataBuffer = fs.readFileSync(req.file.path);
+//     const pdfData = await pdfParse(dataBuffer);
+//     const resumeText = pdfData.text;  // ✅ actual text from the PDF
 
-    const jobDescription = req.body.jobDescription || "";
-    const jobWords = jobDescription.toLowerCase().split(/\W+/);
-    const resumeWords = resumeText.toLowerCase().split(/\W+/);
+//     const jobDescription = req.body.jobDescription || "";
+//     const jobWords = jobDescription.toLowerCase().split(/\W+/);
+//     const resumeWords = resumeText.toLowerCase().split(/\W+/);
 
-    const missing = jobWords.filter(w => w && !resumeWords.includes(w));
-    const matchScore = jobWords.length
-      ? Math.round(((jobWords.length - missing.length) / jobWords.length) * 100)
-      : 0;
+//     const missing = jobWords.filter(w => w && !resumeWords.includes(w));
+//     const matchScore = jobWords.length
+//       ? Math.round(((jobWords.length - missing.length) / jobWords.length) * 100)
+//       : 0;
 
-    res.json({ matchScore, missing });
-  } catch (err) {
-    console.error("Server error:", err);
-    res.status(500).json({ error: "Something went wrong on server" });
-  }
-});
+//     res.json({ matchScore, missing });
+//   } catch (err) {
+//     console.error("Server error:", err);
+//     res.status(500).json({ error: "Something went wrong on server" });
+//   }
+// });
 
 
 
