@@ -1,0 +1,12 @@
+# For node modules
+backend/node_modules
+
+# Environment variables (has the api key never to be pushed)
+backend/.env
+
+# Uploads 
+backend/uploads
+
+frontend/timeline.html
+frontend/timeline.js
+

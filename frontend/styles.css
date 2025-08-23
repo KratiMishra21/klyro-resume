@@ -1,0 +1,122 @@
+/* Default (Light Theme) */
+body {
+  background-color: #ffffff;
+  color: #111;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Dark Mode Styles (when .dark-mode class is on <body>) */
+body.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+/* Optional: Make buttons adapt */
+.dark-mode .btn-primary {
+  background-color: #0a66c2;
+  color: white;
+}
+
+/* Toggle Switch Styling (you can customize this later) */
+.switch {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: inline-block;
+  width: 50px;
+  height: 25px;
+}
+.switch input {
+  display: none;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  background-color: #ccc;
+  border-radius: 25px;
+  height: 100%;
+  width: 100%;
+}
+.slider:before {
+  content: "";
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+input:checked + .slider {
+  background-color: #2196F3;
+}
+input:checked + .slider:before {
+  transform: translateX(25px);
+}
+
+/* === Dark Mode Styles === */
+body.dark-mode {
+  background-color: #121212;
+  color: #f1f1f1;
+}
+
+body.dark-mode a {
+  color: #64b5f6;
+}
+
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode p,
+body.dark-mode span,
+body.dark-mode label,
+body.dark-mode li {
+  color: #f1f1f1;
+}
+
+body.dark-mode .btn-primary {
+  background-color: #1e88e5;
+  color: white;
+}
+
+body.dark-mode .btn-secondary {
+  background-color: #2a2a2a;
+  color: #f1f1f1;
+}
+
+body.dark-mode img,
+body.dark-mode svg {
+  filter: brightness(0.9) contrast(1.2);
+}
+
+body.dark-mode {
+  --bs-body-bg: #121212;
+  --bs-body-color: #f1f1f1;
+  --bs-emphasis-color: #f1f1f1;  /* This fixes text-body-emphasis */
+}
+
+/* Optional: If you use other color utility classes */
+body.dark-mode {
+  --bs-primary: #64b5f6;
+  --bs-secondary: #aaa;
+}
+
+body.dark-mode {
+  --bs-secondary-color: #cccccc;  /* Light gray for dark background */
+}
+
+/* Brighten all images in dark mode */
+body.dark-mode img {
+  filter: brightness(2) contrast(0.8);
+  transition: filter 0.3s ease-in-out;
+}
+
+
+
+
+
+
+
+  
+

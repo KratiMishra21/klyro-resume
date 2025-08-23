@@ -1,0 +1,111 @@
+/* ===========================
+   LIGHT MODE (default)
+=========================== */
+body {
+  background-color: #f8f9fa; /* light background */
+  color: #212529; /* dark text */
+  transition: background-color 0.3s, color 0.3s;
+}
+
+h1, h2, h3, p, label, span {
+  color: #212529;
+}
+
+.btn {
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* File input */
+input[type="file"] {
+  background-color: #fff;
+  color: #212529;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px;
+  transition: background-color 0.3s, color 0.3s, border 0.3s;
+}
+
+/* ===========================
+   DARK MODE
+=========================== */
+body.dark-mode {
+  background-color: #111; /* dark background */
+  color: #f8f9fa; /* light text */
+}
+
+/* Ensure text adapts */
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode p,
+body.dark-mode label,
+body.dark-mode span,
+body.dark-mode .text-secondary,
+body.dark-mode .text-muted,
+body.dark-mode .text-body-secondary {
+  color: #f8f9fa !important;
+}
+
+/* Bootstrap container bg */
+body.dark-mode .bg-light {
+  background-color: #1c1c1c !important;
+  color: #f8f9fa !important;
+}
+
+/* Buttons */
+body.dark-mode .btn-outline-info {
+  border-color: #0dcaf0;
+  color: #0dcaf0;
+}
+
+body.dark-mode .btn-outline-info:hover {
+  background-color: #0dcaf0;
+  color: #111;
+}
+
+/* File input dark mode */
+body.dark-mode input[type="file"] {
+  background-color: #333;
+  color: #f8f9fa;
+  border: 1px solid #666;
+}
+
+body.dark-mode input[type="file"]::file-selector-button {
+  background-color: #444;
+  color: #f8f9fa;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+body.dark-mode input[type="file"]::file-selector-button:hover {
+  background-color: #0dcaf0;
+  color: #111;
+}
+
+/* Footer */
+body.dark-mode footer {
+  background-color: #1a1a1a;
+  color: #f8f9fa;
+  border-top: 1px solid #333;
+}
+
+body.dark-mode footer a svg {
+  fill: #f8f9fa;
+}
+
+/* Upload status text */
+body.dark-mode #uploadStatus {
+  color: #ccc;
+}
+
+
+.container.my-5 {
+  margin-bottom: 0 !important;
+}
+
+footer {
+  margin-top: 0 !important;
+}
+
