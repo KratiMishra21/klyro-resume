@@ -1,6 +1,5 @@
 import express from "express";
 import multer from "multer";
-import pdfParse from "pdf-parse";
 import fs from "fs/promises";
 import path from "path";
 import dotenv from "dotenv";
@@ -8,42 +7,81 @@ import mammoth from "mammoth";
 import { HfInference } from "@huggingface/inference";
 import cors from "cors";
 import { fileURLToPath } from "url";
+import { createRequire } from "module";
+
+// For CommonJS modules in ES6
+const require = createRequire(import.meta.url);
+const pdfParse = require("pdf-parse");
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-
 // Correct __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Serve static files from frontend & images folder
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "../frontend")));
-app.use("/images", express.static(path.join(__dirname, "../images")));
-
+// CORS must come BEFORE other middleware
 app.use(cors({
-  origin: ["https://klyro-resume.vercel.app"],
-  methods: ["POST", "GET"],
+  origin: ["https://klyro-resume.vercel.app", "http://localhost:3000", "http://localhost:5173"],
+  methods: ["POST", "GET", "OPTIONS"],
   credentials: true,
 }));
 
+// Body parser middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, "uploads");
+try {
+  await fs.mkdir(uploadsDir, { recursive: true });
+} catch (err) {
+  console.log("Uploads directory already exists or error:", err.message);
+}
 
 // Multer storage
 const storage = multer.diskStorage({
-  destination: "uploads/",
-  filename: (req, file, cb) => cb(null, file.originalname),
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  },
 });
-const upload = multer({ storage });
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/msword"
+    ];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Invalid file type. Only PDF and DOCX allowed."));
+    }
+  }
+});
 
 // Hugging Face API init
 const hf = new HfInference(process.env.HF_API_KEY);
 
-// ------------------ RESUME REVIEW (EXISTING) ------------------
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", message: "Server is running" });
+});
+
+// ------------------ RESUME REVIEW ------------------
 app.post("/upload", upload.single("resume"), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
   const uploadPath = path.join(__dirname, "uploads", req.file.filename);
 
   try {
@@ -100,49 +138,84 @@ ${resumeText}`,
     res.status(200).json({ analysis: outputText });
   } catch (error) {
     console.error("Upload error:", error);
-    res.status(500).json({ error: "Server error while analyzing resume." });
+    res.status(500).json({ 
+      error: "Server error while analyzing resume.",
+      details: error.message 
+    });
   } finally {
     try {
       await fs.unlink(uploadPath);
-    } catch {}
+    } catch (err) {
+      console.error("Error deleting temp file:", err);
+    }
   }
 });
 
-//new feature that i am trying (not implemented yet)
+// ------------------ KEYWORD MATCH (NEW FEATURE) ------------------
+app.post("/api/keyword-match", upload.single("resume"), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
 
-// app.post("/api/keyword-match", upload.single("resume"), async (req, res) => {
-//   try {
-//     const dataBuffer = fs.readFileSync(req.file.path);
-//     const pdfData = await pdfParse(dataBuffer);
-//     const resumeText = pdfData.text;  // ✅ actual text from the PDF
+  const uploadPath = path.join(__dirname, "uploads", req.file.filename);
 
-//     const jobDescription = req.body.jobDescription || "";
-//     const jobWords = jobDescription.toLowerCase().split(/\W+/);
-//     const resumeWords = resumeText.toLowerCase().split(/\W+/);
+  try {
+    const dataBuffer = await fs.readFile(uploadPath);
+    let resumeText = "";
 
-//     const missing = jobWords.filter(w => w && !resumeWords.includes(w));
-//     const matchScore = jobWords.length
-//       ? Math.round(((jobWords.length - missing.length) / jobWords.length) * 100)
-//       : 0;
+    if (req.file.mimetype === "application/pdf") {
+      const pdfData = await pdfParse(dataBuffer);
+      resumeText = pdfData.text;
+    } else if (
+      req.file.mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      req.file.mimetype === "application/msword"
+    ) {
+      const result = await mammoth.extractRawText({ buffer: dataBuffer });
+      resumeText = result.value;
+    }
 
-//     res.json({ matchScore, missing });
-//   } catch (err) {
-//     console.error("Server error:", err);
-//     res.status(500).json({ error: "Something went wrong on server" });
-//   }
-// });
+    const jobDescription = req.body.jobDescription || "";
+    
+    if (!jobDescription.trim()) {
+      return res.status(400).json({ error: "Job description is required" });
+    }
 
+    const jobWords = jobDescription.toLowerCase().split(/\W+/).filter(w => w.length > 2);
+    const resumeWords = resumeText.toLowerCase().split(/\W+/);
 
+    const missing = jobWords.filter(w => w && !resumeWords.includes(w));
+    const matchScore = jobWords.length
+      ? Math.round(((jobWords.length - missing.length) / jobWords.length) * 100)
+      : 0;
 
-// ------------------ HTML Serving (EXISTING) ------------------
-// app.get("/:page", (req, res, next) => {
-//   const filePath = path.join(__dirname, "../frontend", req.params.page);
-//   if (path.extname(filePath) === ".html") {
-//     res.sendFile(filePath);
-//   } else {
-//     next();
-//   }
-// });
+    res.json({ matchScore, missing: missing.slice(0, 20) }); // Limit to 20 missing words
+  } catch (err) {
+    console.error("Keyword match error:", err);
+    res.status(500).json({ 
+      error: "Something went wrong on server",
+      details: err.message 
+    });
+  } finally {
+    try {
+      await fs.unlink(uploadPath);
+    } catch (err) {
+      console.error("Error deleting temp file:", err);
+    }
+  }
+});
+
+// Serve static files from frontend & images folder (AFTER API routes)
+app.use(express.static(path.join(__dirname, "../frontend")));
+app.use("/images", express.static(path.join(__dirname, "../images")));
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error("Error:", err);
+  res.status(500).json({ 
+    error: "Internal server error",
+    message: err.message 
+  });
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
