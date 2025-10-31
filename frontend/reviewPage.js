@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
     try {
       const API_BASE_URL = window.location.hostname === "localhost"
   ? "http://localhost:3000"
-  : "https://your-deployed-backend.onrender.com";
+  : "https://klyro-resume-38rn.onrender.com";
 
 const response = await fetch(`${API_BASE_URL}/upload`, {
   method: "POST",
