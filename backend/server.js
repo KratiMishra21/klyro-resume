@@ -24,7 +24,14 @@ const __dirname = path.dirname(__filename);
 
 // CORS must come BEFORE other middleware
 app.use(cors({
-  origin: ["https://klyro-resume.vercel.app", "http://localhost:3000", "http://localhost:5173"],
+  origin: [
+    "https://klyro-resume.vercel.app",  // Your Vercel frontend
+    "https://klyro-resume-38rn.onrender.com", // Your Render backend
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5500",  // For live server
+    "null" // For file:// protocol (opening HTML directly)
+  ],
   methods: ["POST", "GET", "OPTIONS"],
   credentials: true,
 }));
