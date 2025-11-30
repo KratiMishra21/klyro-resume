@@ -113,7 +113,7 @@ app.post("/upload", upload.single("resume"), async (req, res) => {
     }
 
     const result = await hf.chatCompletion({
-      model: "mistralai/Mistral-7B-Instruct-v0.3",
+      model: "mistralai/Mistral-7B-Instruct-v0.2",
       messages: [
         {
           role: "system",
